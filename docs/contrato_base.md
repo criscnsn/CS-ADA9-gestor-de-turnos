@@ -1,6 +1,6 @@
 # Contrato Base del Sistema de Gestión de Turnos (SGT)
 
-> **Propósito:** Definir el contrato único entre el backend en **Rust + SQLite (Tauri)** y el frontend en **React + TypeScript** para que los 4 integrantes del equipo trabajen en paralelo sin bloqueos ni inconsistencias, cumpliendo con **ADA-09 (`ERS-SGT-001`)** y el estándar de calidad de **ADA-08**.
+> **Propósito:** Definir el contrato único entre el backend en **Rust + SQLite (`rusqlite`) en Tauri** y el frontend en **React + TypeScript** para que los 4 integrantes del equipo trabajen en paralelo (siguiendo el plan descentralizado de sub-issues en [docs/issues_backlog.md](./issues_backlog.md)), cumpliendo con **ADA-09 (`ERS-SGT-001`)** y el estándar de calidad de **ADA-08** en el repositorio `criscnsn/CS-ADA9-gestor-de-turnos`.
 
 ---
 
@@ -168,7 +168,7 @@ CREATE TABLE IF NOT EXISTS turnos (
 | `finalizar_atencion` | `{ ventanillaId: VentanillaId }` | `Turno` | Valida que la ventanilla tenga turno `EN_ATENCION` (`RF-06`, `RF-07`, `RN-08`); pasa turno a `ATENDIDO` y libera ventanilla. |
 | `cancelar_turno` | `{ turnoId: string }` | `Turno` | Valida formato no vacío (`RNF-S04`), existencia y estado `EN_ESPERA` (`RF-08`, `RF-09`, `RN-07`). Cambia a `CANCELADO` sin borrar de BD. |
 | `cambiar_estado_ventanilla` | `{ ventanillaId: VentanillaId, habilitada: boolean }` | `Ventanilla` | Extensión `RF-13`: si `habilitada === false`, rechaza si la ventanilla está ocupada (`VENTANILLA_OCUPADA`) o si es la única habilitada (`ULTIMA_VENTANILLA_ACTIVA`). |
-| `abrir_ventana` | `{ vista: TipoVista }` | `void` | Crea o enfoca una `WebviewWindow` para `cliente` o `cajero`. |
+| `abrir_ventana` | `{ vista: TipoVista }` | `void` | Crea o enfoca una `WebviewWindow` (`WebviewWindowBuilder`) usando query params `?vista=cliente` o `?vista=cajero` (permite múltiples ventanas Cliente y enfoca o crea la ventana Cajero). |
 
 ### 4.2 Evento en tiempo real (`listen`)
 
@@ -187,5 +187,6 @@ CREATE TABLE IF NOT EXISTS turnos (
 2. **Etiquetas y confirmaciones (`RI-01`, `RI-03`, `RNF-U04`):**
    * Vista Cajero debe mostrar botones diferenciados con texto exacto: **`"Asignar siguiente"`**, **`"Finalizar"`**, **`"Cancelar"`** (con entrada por ID) y **`"Inhabilitar"` / `"Habilitar"`**, más consulta de **`"Historial"`**.
    * Vista Cliente debe mostrar: botón **`"Sacar turno"`**, matriz de fila de espera, estado de `V01`–`V03` (`Libre`, `Ocupado`, `Inhabilitado`), cuántos turnos hay delante y botón **`"Cancelar"`** con **modal de confirmación explícita** antes de invocar `cancelar_turno`.
-3. **Mocking temporal para desarrollo paralelo en frontend:**
-   * Crear un adaptador en `src/` (ej. `sgtClient`) que implemente exactamente las firmas de la sección 4.1. Mientras el backend está en construcción, el frontend puede probarse en navegador/Vitest con un mock que respete este contrato.
+3. **Mocking temporal para desarrollo paralelo en frontend (`#02-B`):**
+   * Definir las interfaces espejo en `src/types/` (o `src/shared/`) y un adaptador mock en memoria que implemente exactamente las firmas de la sección 4.1. Mientras el backend (`#03`–`#06`) está en construcción, el frontend puede desarrollarse y probarse en navegador/`Vitest` contra este mock.
+   * En Rust (`#02-A`), los modelos equivalentes con `serde` (`camelCase`) viven en `src-tauri/src/models/`.
