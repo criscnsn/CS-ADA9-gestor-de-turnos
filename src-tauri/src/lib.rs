@@ -1,3 +1,7 @@
+//! Librería principal del backend Tauri para el Sistema de Gestión de Turnos (SGT).
+
+pub mod db;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {

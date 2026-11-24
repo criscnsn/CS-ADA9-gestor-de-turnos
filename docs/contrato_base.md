@@ -106,40 +106,50 @@ export interface AppError {
 
 ## 3. Esquema y Reglas de SQLite (`RD-01`, `RD-02`, `RD-03`)
 
-### 3.1 Tablas SQL
+> El esquema completo versionado con índices, triggers y documentación de extensibilidad (para soportar futuras ventanillas como `V04` sin recrear tablas) vive en [`src-tauri/migrations/001_initial.sql`](../src-tauri/migrations/001_initial.sql) y [docs/esquema_bd.md](./esquema_bd.md).
+
+### 3.1 Tablas SQL (resumen de `001_initial.sql`)
 
 ```sql
 PRAGMA foreign_keys = ON;
 PRAGMA journal_mode = WAL;
 
-CREATE TABLE IF NOT EXISTS secuencias (
-    clave TEXT PRIMARY KEY,
-    ultimo_valor INTEGER NOT NULL CHECK (ultimo_valor >= 0)
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version INTEGER PRIMARY KEY CHECK (version > 0),
+    nombre TEXT NOT NULL UNIQUE CHECK (length(trim(nombre)) > 0),
+    aplicada_en TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );
 
-INSERT OR IGNORE INTO secuencias (clave, ultimo_valor)
-VALUES ('turno', 0);
+CREATE TABLE IF NOT EXISTS secuencias (
+    clave TEXT PRIMARY KEY CHECK (length(trim(clave)) > 0),
+    ultimo_valor INTEGER NOT NULL DEFAULT 0 CHECK (ultimo_valor >= 0)
+);
 
 CREATE TABLE IF NOT EXISTS ventanillas (
-    id TEXT PRIMARY KEY CHECK (id IN ('V01', 'V02', 'V03')),
+    id TEXT PRIMARY KEY CHECK (length(id) >= 3 AND substr(id, 1, 1) = 'V' AND substr(id, 2) NOT GLOB '*[^0-9]*'),
     habilitada INTEGER NOT NULL DEFAULT 1 CHECK (habilitada IN (0, 1)),
-    turno_actual_id TEXT NULL UNIQUE
+    turno_actual_id TEXT NULL UNIQUE,
+    CHECK (habilitada = 1 OR turno_actual_id IS NULL),
+    FOREIGN KEY (turno_actual_id) REFERENCES turnos(id) ON DELETE RESTRICT
 );
-
-INSERT OR IGNORE INTO ventanillas (id, habilitada, turno_actual_id) VALUES
-    ('V01', 1, NULL),
-    ('V02', 1, NULL),
-    ('V03', 1, NULL);
 
 CREATE TABLE IF NOT EXISTS turnos (
-    id TEXT PRIMARY KEY,
+    id TEXT PRIMARY KEY CHECK (length(trim(id)) > 0),
     secuencia INTEGER NOT NULL UNIQUE CHECK (secuencia > 0),
-    fecha_hora_registro TEXT NOT NULL,
+    fecha_hora_registro TEXT NOT NULL CHECK (length(trim(fecha_hora_registro)) > 0),
     estado TEXT NOT NULL CHECK (estado IN ('EN_ESPERA', 'EN_ATENCION', 'ATENDIDO', 'CANCELADO')),
-    ventanilla_asignada TEXT NULL CHECK (
-        ventanilla_asignada IS NULL OR ventanilla_asignada IN ('V01', 'V02', 'V03')
-    )
+    ventanilla_asignada TEXT NULL,
+    CHECK (
+        (estado IN ('EN_ESPERA', 'CANCELADO') AND ventanilla_asignada IS NULL)
+        OR
+        (estado IN ('EN_ATENCION', 'ATENDIDO') AND ventanilla_asignada IS NOT NULL)
+    ),
+    FOREIGN KEY (ventanilla_asignada) REFERENCES ventanillas(id) ON DELETE RESTRICT
 );
+
+INSERT OR IGNORE INTO secuencias (clave, ultimo_valor) VALUES ('turno', 0);
+INSERT OR IGNORE INTO ventanillas (id, habilitada, turno_actual_id) VALUES
+    ('V01', 1, NULL), ('V02', 1, NULL), ('V03', 1, NULL);
 ```
 
 ### 3.2 Garantías obligatorias en persistencia

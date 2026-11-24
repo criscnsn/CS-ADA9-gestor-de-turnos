@@ -18,7 +18,7 @@
 | **#03** Dominio FIFO | **#03-A** Registro FIFO, secuencia y consultas | `feature/3a-dominio-registro-consultas` | Backend (Cristopher) | Pendiente de crear |
 | **#03** Dominio FIFO | **#03-B** Máquina de estados y validaciones | `feature/3b-dominio-transiciones-turnos` | Backend (Cristopher) | Pendiente de crear |
 | **#04** Extensión RF-13 y Tests | **#04** Regla `RF-13` y suite `CV-01`–`CV-06`, `CV-10` | `feature/4-dominio-rf13-tests-cv` | Backend (Cristopher) | Pendiente de crear |
-| **#05** Persistencia SQLite | **#05-A** Esquema SQLite (`rusqlite`) y transacciones | `feature/5a-sqlite-esquema-transacciones` | Backend (Gael) | Relacionada con **GH #2** |
+| **#05** Persistencia SQLite | **#05-A** Esquema SQLite (`rusqlite`) y transacciones | `18-definir-el-esquema-de-la-base-de-datos-en-sqlite` / `feature/5a-sqlite-esquema-transacciones` | Backend (Gael) | Publicada en **GH #18** / Relacionada con **GH #2** |
 | **#05** Persistencia SQLite | **#05-B** Corrupción (`RD-03`) y tests `CV-07`–`CV-09` | `feature/5b-sqlite-corrupcion-tests-cv` | Backend (Gael) | Relacionada con **GH #2** |
 | **#06** Comandos IPC Tauri | **#06** Comandos IPC, `Arc<Mutex<...>>` y eventos | `feature/6-ipc-commands-eventos` | Backend (Gael) | Pendiente de crear |
 | **#07** Multi-Ventana y Perf | **#07-A** Gestor multi-ventana (`WebviewWindow`) | `feature/7a-multiventana-webview` | Backend (Gael) | Pendiente de crear |
@@ -192,10 +192,10 @@ Semana 3 (Bloque 4 · Cierre): #12 (E2E WebdriverIO) ─► #13 (Auditoría Segu
 **División en 2 sub-issues:**
 
 #### Sub-issue #05-A — Esquema SQLite (`rusqlite`) y repositorio transaccional
-* **Rama:** `feature/5a-sqlite-esquema-transacciones` · **Responsable sugerido:** Backend (Gael)
+* **Rama:** `18-definir-el-esquema-de-la-base-de-datos-en-sqlite` (esquema inicial, **GH #18**) / `feature/5a-sqlite-esquema-transacciones` (repositorio transaccional) · **Responsable sugerido:** Backend (Gael)
 * **Tareas concretas:**
   1. Agregar `rusqlite` (con feature `bundled`) a `src-tauri/Cargo.toml` y verificar con `cargo audit`.
-  2. Crear inicializador de esquema SQLite según [docs/contrato_base.md](./contrato_base.md) (tablas `secuencias`, `ventanillas`, `turnos`, `PRAGMA journal_mode=WAL`, `PRAGMA foreign_keys=ON`).
+  2. Crear migración/inicializador de esquema SQLite según [docs/esquema_bd.md](./esquema_bd.md) y [docs/contrato_base.md](./contrato_base.md) (tablas `schema_migrations`, `secuencias`, `ventanillas`, `turnos`, `PRAGMA journal_mode=WAL`, `PRAGMA foreign_keys=ON`, índices y triggers).
   3. Implementar operaciones transaccionales atómicas (`BEGIN IMMEDIATE ... COMMIT` / `ROLLBACK` automático ante fallo).
 * **Criterios de aceptación:**
   * [ ] El esquema SQLite se crea automáticamente en una BD nueva e inicializa `V01`, `V02`, `V03` habilitadas y `secuencias('turno') = 0`.
