@@ -1,0 +1,57 @@
+[
+  {
+    "codigo": "VENTANILLA_INVALIDA",
+    "mensaje": "Ejemplo de error VENTANILLA_INVALIDA.",
+    "recursoId": "V01"
+  },
+  {
+    "codigo": "VENTANILLA_OCUPADA",
+    "mensaje": "Ejemplo de error VENTANILLA_OCUPADA.",
+    "recursoId": "V01"
+  },
+  {
+    "codigo": "VENTANILLA_LIBRE",
+    "mensaje": "Ejemplo de error VENTANILLA_LIBRE.",
+    "recursoId": "V01"
+  },
+  {
+    "codigo": "VENTANILLA_INHABILITADA",
+    "mensaje": "Ejemplo de error VENTANILLA_INHABILITADA.",
+    "recursoId": "V01"
+  },
+  {
+    "codigo": "ULTIMA_VENTANILLA_ACTIVA",
+    "mensaje": "Ejemplo de error ULTIMA_VENTANILLA_ACTIVA.",
+    "recursoId": null
+  },
+  {
+    "codigo": "FILA_VACIA",
+    "mensaje": "Ejemplo de error FILA_VACIA.",
+    "recursoId": null
+  },
+  {
+    "codigo": "TURNO_INEXISTENTE",
+    "mensaje": "Ejemplo de error TURNO_INEXISTENTE.",
+    "recursoId": null
+  },
+  {
+    "codigo": "ESTADO_TURNO_INVALIDO",
+    "mensaje": "Ejemplo de error ESTADO_TURNO_INVALIDO.",
+    "recursoId": null
+  },
+  {
+    "codigo": "ENTRADA_INVALIDA",
+    "mensaje": "Ejemplo de error ENTRADA_INVALIDA.",
+    "recursoId": null
+  },
+  {
+    "codigo": "ERROR_PERSISTENCIA",
+    "mensaje": "Ejemplo de error ERROR_PERSISTENCIA.",
+    "recursoId": null
+  },
+  {
+    "codigo": "BASE_DATOS_CORRUPTA",
+    "mensaje": "Ejemplo de error BASE_DATOS_CORRUPTA.",
+    "recursoId": null
+  }
+]
