@@ -25,6 +25,7 @@
 pub mod consultas;
 pub mod registro;
 pub mod transiciones;
+pub mod ventanillas;
 
 use std::collections::HashSet;
 
