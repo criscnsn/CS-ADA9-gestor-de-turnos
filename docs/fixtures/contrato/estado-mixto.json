@@ -1,0 +1,58 @@
+{
+  "ventanillas": [
+    {
+      "id": "V01",
+      "habilitada": true,
+      "turnoActualId": "T-0003"
+    },
+    {
+      "id": "V02",
+      "habilitada": true,
+      "turnoActualId": null
+    },
+    {
+      "id": "V03",
+      "habilitada": false,
+      "turnoActualId": null
+    }
+  ],
+  "filaEspera": [
+    {
+      "id": "T-0004",
+      "secuencia": 4,
+      "fechaHoraRegistro": "2026-11-18T01:00:00.000Z",
+      "estado": "EN_ESPERA",
+      "ventanillaAsignada": null
+    }
+  ],
+  "historial": [
+    {
+      "id": "T-0001",
+      "secuencia": 1,
+      "fechaHoraRegistro": "2026-11-18T01:00:00.000Z",
+      "estado": "ATENDIDO",
+      "ventanillaAsignada": "V02"
+    },
+    {
+      "id": "T-0002",
+      "secuencia": 2,
+      "fechaHoraRegistro": "2026-11-18T01:00:00.000Z",
+      "estado": "CANCELADO",
+      "ventanillaAsignada": null
+    },
+    {
+      "id": "T-0003",
+      "secuencia": 3,
+      "fechaHoraRegistro": "2026-11-18T01:00:00.000Z",
+      "estado": "EN_ATENCION",
+      "ventanillaAsignada": "V01"
+    },
+    {
+      "id": "T-0004",
+      "secuencia": 4,
+      "fechaHoraRegistro": "2026-11-18T01:00:00.000Z",
+      "estado": "EN_ESPERA",
+      "ventanillaAsignada": null
+    }
+  ]
+}

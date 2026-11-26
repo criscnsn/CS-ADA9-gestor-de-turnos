@@ -1,0 +1,21 @@
+{
+  "ventanillas": [
+    {
+      "id": "V01",
+      "habilitada": true,
+      "turnoActualId": null
+    },
+    {
+      "id": "V02",
+      "habilitada": true,
+      "turnoActualId": null
+    },
+    {
+      "id": "V03",
+      "habilitada": true,
+      "turnoActualId": null
+    }
+  ],
+  "filaEspera": [],
+  "historial": []
+}
