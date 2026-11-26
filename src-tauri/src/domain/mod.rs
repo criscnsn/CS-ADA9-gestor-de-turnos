@@ -6,11 +6,13 @@
 //!   secuencia monotónica creciente (`RN-01`, `RN-02`, `RF-02`).
 //! - [`consultas`]: consultas de ventanillas (`RF-01`), fila FIFO (`RF-03`),
 //!   historial completo (`RF-10`) y snapshots [`EstadoSistema`].
+//! - [`transiciones`]: asignación FIFO (`RF-04`, `RF-05`), finalización
+//!   (`RF-06`, `RF-07`) y cancelación (`RF-08`, `RF-09`), incluyendo el guard
+//!   de ventanilla habilitada (`RF-13`).
 //!
-//! Las transiciones de atención (`#9`) y la habilitación/inhabilitación de
-//! ventanillas (`#10`, `RF-13`) se incorporan como submódulos hermanos usando
-//! las firmas de acceso al estado expuestas por [`SistemaTurnos`], sin acoplar
-//! este núcleo a Tauri ni a SQLite (`RNF-M01`).
+//! La habilitación/inhabilitación de ventanillas (`#10`, `RF-13`) se incorpora
+//! como submódulo hermano usando las firmas de acceso al estado expuestas por
+//! [`SistemaTurnos`], sin acoplar este núcleo a Tauri ni a SQLite (`RNF-M01`).
 //!
 //! # Coordinación de secuencia con persistencia (`#12`)
 //!
@@ -22,6 +24,7 @@
 
 pub mod consultas;
 pub mod registro;
+pub mod transiciones;
 
 use std::collections::HashSet;
 
