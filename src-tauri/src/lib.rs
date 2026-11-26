@@ -3,13 +3,15 @@
 //! [`models`] expone los tipos JSON compartidos con el frontend. [`run`] inicia
 //! la aplicación Tauri con sus plugins y comandos registrados.
 //!
-//! Los modelos describen el contrato de datos y [`db`] inicializa el esquema
-//! SQLite. La lógica de dominio y los comandos SGT se incorporan en sus
-//! respectivos entregables.
+//! Los modelos describen el contrato de datos, [`domain`] encapsula el estado y
+//! las reglas puras del SGT y [`db`] inicializa el esquema SQLite. Los módulos
+//! de transiciones, `RF-13` y comandos IPC se incorporan en sus respectivos
+//! entregables.
 
 #![warn(missing_docs, rustdoc::broken_intra_doc_links)]
 
 pub mod db;
+pub mod domain;
 pub mod models;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
