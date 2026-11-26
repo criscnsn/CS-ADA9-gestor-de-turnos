@@ -4,12 +4,12 @@
 //! la aplicación Tauri con sus plugins y comandos registrados.
 //!
 //! Los modelos describen el contrato de datos, [`domain`] encapsula el estado y
-//! las reglas puras del SGT y [`db`] inicializa el esquema SQLite. Los módulos
-//! de transiciones, `RF-13` y comandos IPC se incorporan en sus respectivos
-//! entregables.
+//! las reglas puras del SGT, [`db`] inicializa el esquema SQLite y [`comandos`]
+//! expone los comandos IPC con el patrón commit → memoria → evento.
 
 #![warn(missing_docs, rustdoc::broken_intra_doc_links)]
 
+pub mod comandos;
 pub mod db;
 pub mod domain;
 pub mod models;
@@ -36,7 +36,18 @@ fn greet(name: &str) -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet, windows::abrir_ventana])
+        // ponytail: falta app.manage(EstadoApp) con el RepositorioSqlite de #12;
+        // hasta entonces los comandos SGT no tienen estado en tiempo de ejecución.
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            windows::abrir_ventana,
+            comandos::obtener_estado,
+            comandos::registrar_turno,
+            comandos::asignar_siguiente,
+            comandos::finalizar_atencion,
+            comandos::cancelar_turno,
+            comandos::cambiar_estado_ventanilla,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
