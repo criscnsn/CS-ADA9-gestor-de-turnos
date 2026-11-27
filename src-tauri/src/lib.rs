@@ -13,6 +13,7 @@
 pub mod db;
 pub mod domain;
 pub mod models;
+pub mod repository;
 pub mod windows;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
