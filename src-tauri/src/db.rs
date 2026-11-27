@@ -38,6 +38,18 @@ pub fn inicializar_esquema(conn: &Connection) -> Result<(), rusqlite::Error> {
 /// Abre (o crea) la base de datos SQLite en `ruta`, creando directorios padres
 /// si aún no existen, y asegura que el esquema inicial esté aplicado.
 pub fn abrir_conexion(ruta: impl AsRef<Path>) -> Result<Connection, rusqlite::Error> {
+    let conn = abrir_conexion_configurada(ruta)?;
+    inicializar_esquema(&conn)?;
+    Ok(conn)
+}
+
+/// Abre y configura una conexión sin aplicar el esquema ni insertar semillas.
+///
+/// Permite validar una base existente antes de cualquier inicialización.
+///
+/// # Errors
+/// Devuelve el error de creación del directorio, apertura o configuración.
+pub fn abrir_conexion_configurada(ruta: impl AsRef<Path>) -> Result<Connection, rusqlite::Error> {
     let ruta = ruta.as_ref();
     if let Some(padre) = ruta.parent()
         && !padre.as_os_str().is_empty()
@@ -55,7 +67,7 @@ pub fn abrir_conexion(ruta: impl AsRef<Path>) -> Result<Connection, rusqlite::Er
     }
 
     let conn = Connection::open(ruta)?;
-    inicializar_esquema(&conn)?;
+    configurar_pragmas(&conn)?;
     Ok(conn)
 }
 
