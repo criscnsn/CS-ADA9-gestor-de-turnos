@@ -33,6 +33,10 @@ pub trait Repositorio: Send {
     /// # Errors
     /// Devuelve `ErrorPersistencia` cuando no puede confirmar la operación.
     fn guardar(&mut self, cambios: &Cambios) -> Result<(), AppError>;
+
+    /// Programa un único fallo controlado en la próxima escritura para pruebas (`CV-09`).
+    #[cfg(feature = "test-fault-injection")]
+    fn inyectar_fallo_escritura(&mut self, _punto: PuntoFalloEscritura) {}
 }
 
 /// Filas nuevas o modificadas por una operación del dominio.
@@ -907,5 +911,10 @@ impl Repositorio for RepositorioSqlite {
         resultado?;
         self.permitir_checkpoint()?;
         Ok(())
+    }
+
+    #[cfg(feature = "test-fault-injection")]
+    fn inyectar_fallo_escritura(&mut self, punto: PuntoFalloEscritura) {
+        self.fallo_escritura = Some(punto);
     }
 }
