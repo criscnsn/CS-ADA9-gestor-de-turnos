@@ -16,6 +16,54 @@ pub const INITIAL_SCHEMA_SQL: &str = include_str!("../migrations/001_initial.sql
 /// Nombre por defecto del archivo de base de datos dentro de `app_data_dir`.
 pub const DEFAULT_DB_FILENAME: &str = "sgt.db";
 
+/// Error de comprobación física o referencial de SQLite.
+#[derive(Debug)]
+pub enum ErrorIntegridad {
+    /// SQLite no pudo completar la comprobación.
+    Sqlite(rusqlite::Error),
+    /// La comprobación encontró datos dañados o referencias inválidas.
+    Corrupta(String),
+}
+
+/// Configura únicamente opciones de conexión que no cambian el modo de journal.
+///
+/// # Errors
+/// Devuelve errores al configurar la conexión.
+pub fn configurar_pragmas_lectura(conn: &Connection) -> Result<(), rusqlite::Error> {
+    conn.execute_batch("PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;")
+}
+
+/// Comprueba la integridad física y las claves foráneas antes de activar WAL.
+///
+/// # Errors
+/// Distingue resultados corruptos de errores al ejecutar las consultas SQLite.
+pub fn verificar_integridad_fisica(conn: &Connection) -> Result<(), ErrorIntegridad> {
+    let mut stmt = conn
+        .prepare("PRAGMA integrity_check")
+        .map_err(ErrorIntegridad::Sqlite)?;
+    let mut filas = stmt.query([]).map_err(ErrorIntegridad::Sqlite)?;
+    let primera = filas.next().map_err(ErrorIntegridad::Sqlite)?;
+    let valor: Option<String> = primera
+        .map(|fila| fila.get(0))
+        .transpose()
+        .map_err(ErrorIntegridad::Sqlite)?;
+    if valor.as_deref() != Some("ok") || filas.next().map_err(ErrorIntegridad::Sqlite)?.is_some() {
+        return Err(ErrorIntegridad::Corrupta(format!(
+            "integrity_check: {valor:?}"
+        )));
+    }
+    let mut stmt = conn
+        .prepare("PRAGMA foreign_key_check")
+        .map_err(ErrorIntegridad::Sqlite)?;
+    let mut filas = stmt.query([]).map_err(ErrorIntegridad::Sqlite)?;
+    if filas.next().map_err(ErrorIntegridad::Sqlite)?.is_some() {
+        return Err(ErrorIntegridad::Corrupta(
+            "Violación de clave foránea".into(),
+        ));
+    }
+    Ok(())
+}
+
 /// Configura los `PRAGMA`s obligatorios de sesión en una conexión SQLite.
 ///
 /// Debe ejecutarse fuera de cualquier transacción activa para garantizar que

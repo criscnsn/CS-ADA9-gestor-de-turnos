@@ -231,44 +231,86 @@ fn fallo_al_abrir_base_nueva_con_wal_bloqueado_no_deja_db_y_preserva_archivos_pr
         assert_eq!(sistema, SistemaTurnos::nuevo());
     }
 
-    // 2. Archivo vacío preexistente: no se elimina ni se siembra silenciosamente.
+    // 2. Archivo vacío preexistente: abrir() lo rechaza directamente con BaseDatosCorrupta
+    //    y lo conserva en 0 bytes sin crear páginas ni auxiliares -wal/-shm.
     {
         let dir = DirectorioPrueba::nuevo("archivo_vacio_preexistente");
         fs::create_dir_all(&dir.raiz).expect("debe crear directorio de prueba");
         fs::write(dir.ruta(), b"").expect("debe crear archivo vacío preexistente");
 
-        let wal_dir = dir.raiz.join("sgt.db-wal");
-        fs::create_dir(&wal_dir).expect("debe crear directorio bloqueador sgt.db-wal");
-        let err_bloqueo = RepositorioSqlite::abrir(dir.ruta())
+        let err_vacio = RepositorioSqlite::abrir(dir.ruta())
             .err()
-            .expect("abrir archivo vacío existente con wal bloqueado debe fallar al verificar WAL");
-        assert_eq!(err_bloqueo.codigo, CodigoError::ErrorPersistencia);
+            .expect("abrir archivo vacío preexistente debe fallar en abrir");
+        assert_eq!(err_vacio.codigo, CodigoError::BaseDatosCorrupta);
         assert!(
             dir.ruta().exists(),
             "no debe eliminarse un archivo vacío preexistente"
         );
-        fs::remove_dir(&wal_dir).expect("debe retirar directorio bloqueador");
+        assert_eq!(
+            fs::metadata(dir.ruta())
+                .expect("debe leer metadata del archivo vacío")
+                .len(),
+            0,
+            "el archivo vacío preexistente debe conservar exactamente 0 bytes"
+        );
+        assert!(
+            fs::read(dir.ruta())
+                .expect("debe leer archivo vacío")
+                .is_empty()
+        );
+        assert!(
+            !dir.raiz.join("sgt.db-wal").exists(),
+            "no debe crear auxiliar -wal al rechazar archivo vacío"
+        );
+        assert!(
+            !dir.raiz.join("sgt.db-shm").exists(),
+            "no debe crear auxiliar -shm al rechazar archivo vacío"
+        );
+    }
+
+    // 2b. Base válida existente con directorio bloqueador `sgt.db-wal`: falla con ErrorPersistencia
+    //     y conserva los datos al retirar el bloqueo.
+    {
+        let dir = DirectorioPrueba::nuevo("base_valida_wal_bloqueado");
+        {
+            let mut repo = RepositorioSqlite::abrir(dir.ruta()).expect("debe crear base válida");
+            let mut sistema = repo.cargar().expect("debe cargar estado inicial");
+            let t1 = sistema
+                .registrar_turno_en(instante_fijo(1))
+                .expect("debe registrar T-0001");
+            repo.guardar(&Cambios {
+                turnos: vec![t1],
+                ventanillas: vec![],
+                ultima_secuencia: 1,
+            })
+            .expect("debe guardar T-0001");
+        }
+
+        let wal_dir = dir.raiz.join("sgt.db-wal");
+        assert!(
+            !wal_dir.exists(),
+            "el cierre limpio debe haber integrado y retirado -wal"
+        );
+        fs::create_dir(&wal_dir).expect("debe crear directorio bloqueador sgt.db-wal");
+
+        let err_bloqueo = RepositorioSqlite::abrir(dir.ruta())
+            .err()
+            .expect("abrir base válida con sgt.db-wal bloqueado debe fallar al activar WAL");
+        assert_eq!(err_bloqueo.codigo, CodigoError::ErrorPersistencia);
+        assert!(
+            dir.ruta().exists(),
+            "no debe eliminarse la base válida ante bloqueo de WAL"
+        );
+
+        fs::remove_dir(&wal_dir).expect("debe retirar directorio bloqueador sgt.db-wal");
 
         let mut repo = RepositorioSqlite::abrir(dir.ruta())
-            .expect("abrir archivo vacío existente no lo borra ni re-inicializa");
-        let err_cargar = repo
+            .expect("al retirar el bloqueo debe abrir la base válida");
+        let sistema = repo
             .cargar()
-            .expect_err("cargar archivo vacío preexistente no debe resembrar tablas");
-        assert_eq!(err_cargar.codigo, CodigoError::BaseDatosCorrupta);
-        drop(repo);
-
-        let conn = abrir_segunda_conexion(dir.ruta());
-        let tablas: i64 = conn
-            .query_row(
-                "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'",
-                [],
-                |r| r.get(0),
-            )
-            .expect("debe consultar sqlite_master");
-        assert_eq!(
-            tablas, 0,
-            "no debe crear tablas ni semillas sobre archivo preexistente"
-        );
+            .expect("debe cargar los datos previos tras retirar el bloqueo");
+        assert_eq!(sistema.ultima_secuencia(), 1);
+        assert!(sistema.buscar_turno("T-0001").is_some());
     }
     // 3. Archivo corrupto preexistente con wal bloqueado o sin bloqueo: se conserva intacto.
     {

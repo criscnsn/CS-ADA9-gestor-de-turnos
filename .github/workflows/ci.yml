@@ -57,6 +57,19 @@ jobs:
       - name: Pruebas unitarias (cargo test)
         working-directory: src-tauri
         run: cargo test
+      - name: Clippy con inyección de fallos
+        working-directory: src-tauri
+        run: cargo clippy --all-targets --features test-fault-injection -- -D warnings
+      - name: Pruebas con inyección de fallos
+        working-directory: src-tauri
+        run: cargo test --features test-fault-injection
       - name: Documentación (cargo doc)
         working-directory: src-tauri
+        env:
+          RUSTDOCFLAGS: -D warnings
         run: cargo doc --no-deps
+      - name: Documentación con inyección de fallos
+        working-directory: src-tauri
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --no-deps --features test-fault-injection
